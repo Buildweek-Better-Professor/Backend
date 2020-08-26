@@ -76,6 +76,37 @@ router.get("/:id", (req, res) => {
       res.status(500).json({ error: err.message });
     });
 });
+/**
+ * @api {get} /classes/:classId/tasks Get task list for particular class
+ * @apiGroup Class Tasks
+ * @apiSuccess {Array} data Task objects
+ * @apiParam {Integer} classId Taken from url
+ * @apiSuccessExample Success-Response: 
+    HTTP 200 ok
+    {
+      "data": [
+          {
+             
+          }
+      ]
+    }
+
+    @apiErrorExample Error-Response:
+      HTTP 406 Not Acceptable
+      {
+        "data": []"
+      }
+ */
+//gets a task list for a particular class
+router.get("/:id/tasks", (req, res) => {
+  Classes.getClassTasks(req.params.id)
+    .then((tasks) => {
+      res.status(200).json({ data: tasks });
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+});
 
 /**
  * @api {put} /classes/:classId Edits the information for a class

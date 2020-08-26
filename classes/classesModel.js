@@ -7,6 +7,7 @@ module.exports = {
   editClass,
   deleteClass,
   getStudents,
+  getClassTasks,
 };
 
 //returns an array of all classes in database
@@ -47,4 +48,14 @@ async function getStudents(classId) {
     .select("s.name", "s.id", "c.name as class", "c.id as class_id")
     .where({ "c.id": classId })
     .orderBy("s.id");
+}
+
+//returns an array of all task objects for a class with the given id
+async function getClassTasks(classId) {
+  return db("tasks as t")
+    .join("class_tasks as ct", "ct.task_id", "t.id")
+    .join("classes as c", "ct.class_id", "c.id")
+    .where({ "c.id": classId })
+    .select("t.name as task", "t.id")
+    .orderBy("t.id");
 }

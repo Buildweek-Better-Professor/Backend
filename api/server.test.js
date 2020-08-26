@@ -286,6 +286,62 @@ describe("server", () => {
       });
     });
 
+    //task list for a particular class
+    describe("GET /classes/:id/tasks", () => {
+      it("receives 200 OK when retrieving task list from a particular class", async () => {
+        await db("classes").insert({ name: "Security" });
+        await db("classes").insert({ name: "CS" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const firstRes = await supertest(server)
+          .post("/auth/register")
+          .send({ username: "sam", password: "pass", class_id: 1 });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server).get("/classes/1/tasks").set({
+          authorization: token,
+        });
+
+        expect(secondRes.status).toBe(200);
+      });
+
+      it.only("receives an array of task objects", async () => {
+        await db("classes").insert({ name: "Security" });
+        await db("classes").insert({ name: "CS" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const exp = [
+          { task: "to do", id: 1 },
+          { task: "to do3", id: 3 },
+        ];
+
+        const firstRes = await supertest(server)
+          .post("/auth/register")
+          .send({ username: "sam", password: "pass", class_id: 1 });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server).get("/classes/1/tasks").set({
+          authorization: token,
+        });
+
+        expect(secondRes.body.data).toEqual(exp);
+      });
+    });
+
     //task list for particular student
     describe("GET /students/:id/tasks", () => {
       it("gets 200 OK when geting empty task list for a particular student", async () => {
