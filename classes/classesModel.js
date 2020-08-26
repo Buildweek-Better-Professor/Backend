@@ -8,6 +8,8 @@ module.exports = {
   deleteClass,
   getStudents,
   getClassTasks,
+  addClassTasks,
+  deleteClassTasks,
 };
 
 //returns an array of all classes in database
@@ -59,3 +61,7 @@ async function getClassTasks(classId) {
     .select("t.name as task", "t.id")
     .orderBy("t.id");
 }
+
+async function deleteClassTasks(classId, taskId) {}
+
+async function addClassTasks(classId, task) {}

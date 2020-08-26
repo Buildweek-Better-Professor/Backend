@@ -1578,6 +1578,189 @@ describe("server", () => {
       });
     });
 
+    //edit task information for a class
+    describe("PUT /classes/tasks/:id", () => {
+      it("edits the task of a particular class", async () => {
+        await db("classes").insert({ name: "CS" });
+        await db("classes").insert({ name: "Psy" });
+        await db("classes").insert({ name: "Math" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const expTask = [
+          {
+            id: 1,
+            name: "to do",
+            description: null,
+            completed: 1,
+            due_date: "before noon",
+          },
+        ];
+
+        const exp = [
+          {
+            id: 1,
+            name: "to do",
+            description: null,
+            completed: 1,
+            due_date: "before noon",
+          },
+          {
+            id: 2,
+            name: "to do2",
+            description: null,
+            completed: 0,
+            due_date: "before noon",
+          },
+          {
+            id: 3,
+            name: "to do3",
+            description: null,
+            completed: 0,
+            due_date: "before noon",
+          },
+        ];
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .put("/classes/tasks/1")
+          .send({ completed: 1 })
+          .set({ authorization: token });
+
+        const dbExp = await db("tasks as t").where({ "t.id": 1 });
+        const dbTasks = await db("tasks");
+
+        expect(dbExp).toEqual(expTask);
+        expect(dbTasks).toEqual(exp);
+      });
+
+      it("sends 200 OK when editing a class successfully", async () => {
+        await db("classes").insert({ name: "CS" });
+        await db("classes").insert({ name: "Psy" });
+        await db("classes").insert({ name: "Math" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .put("/classes/tasks/1")
+          .send({ completed: 1 })
+          .set({ authorization: token });
+
+        expect(secondRes.status).toBe(200);
+      });
+
+      it.only("sends 'Success' message when editing a class successfully", async () => {
+        await db("classes").insert({ name: "CS" });
+        await db("classes").insert({ name: "Psy" });
+        await db("classes").insert({ name: "Math" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .put("/classes/tasks/1")
+          .send({ completed: 1 })
+          .set({ authorization: token });
+
+        expect(secondRes.body.message).toBe("Success");
+      });
+
+      it("sends 406 error when not providing task information", async () => {
+        await db("classes").insert({ name: "CS" });
+        await db("classes").insert({ name: "Psy" });
+        await db("classes").insert({ name: "Math" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .put("/classes/tasks/1")
+          .send({})
+          .set({ authorization: token });
+
+        expect(secondRes.status).toBe(406);
+      });
+
+      it("sends 'Please provide information for the task' error message when not providing task information", async () => {
+        await db("classes").insert({ name: "CS" });
+        await db("classes").insert({ name: "Psy" });
+        await db("classes").insert({ name: "Math" });
+
+        await db("tasks").insert({ name: "to do", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+        await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+        await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+        await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .put("/classes/tasks/1")
+          .send({})
+          .set({ authorization: token });
+
+        expect(secondRes.body.message).toBe(
+          "Please provide information for the task",
+        );
+      });
+    });
+
     //edit student information
     describe("PUT /users/students/:id", () => {
       it("edits the name of a particular student ", async () => {

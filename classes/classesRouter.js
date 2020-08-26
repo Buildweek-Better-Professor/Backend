@@ -1,7 +1,9 @@
 const router = require("express").Router();
 const Classes = require("./classesModel");
+const Students = require("../students/studentsModel");
 const Users = require("../users/usersModel");
 const helpers = require("./classesService");
+const taskHelpers = require("../students/studentServices");
 
 /**
  * @api {get} /classes Get class list of current user
@@ -86,7 +88,8 @@ router.get("/:id", (req, res) => {
     {
       "data": [
           {
-             
+             "task": 'A task to do',
+             "id: 1
           }
       ]
     }
@@ -137,6 +140,44 @@ router.put("/:id", (req, res) => {
       });
   } else {
     res.status(406).json({ message: "Please provide a name for the class" });
+  }
+});
+
+/**
+ * @api {put} /classes/:classId/tasks Edits the information for a task in a particular class
+ * @apiGroup Class Tasks
+ * @apiSuccess {String} message 
+ * @apiParam {Integer} classId Taken from url
+ * @apiSuccessExample Success-Response: 
+    HTTP 200 ok
+    {
+      "message": "Success"
+    }
+
+    @apiErrorExample Error-Response:
+      HTTP 406 Not Acceptable
+      {
+        "message": "Please provide a name and due date for the task"
+      }
+ */
+//edits the task information for a particular task in a particular class
+router.put("/tasks/:id", (req, res) => {
+  const task = req.body;
+  if (
+    taskHelpers.validEditTask(task) &&
+    taskHelpers.validTaskId(req.params.id)
+  ) {
+    Students.editTask(req.params.id, task)
+      .then((count) => {
+        res.status(200).json({ message: "Success" });
+      })
+      .catch((err) => {
+        res.status(500).json({ error: err.message });
+      });
+  } else {
+    res
+      .status(406)
+      .json({ message: "Please provide information for the task" });
   }
 });
 
