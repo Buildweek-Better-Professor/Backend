@@ -267,7 +267,10 @@ describe("server", () => {
         await db("student_classes").insert({ student_id: 2, class_id: 2 });
         await db("student_classes").insert({ student_id: 3, class_id: 1 });
 
-        const exp = [{ name: "Frodo" }, { name: "Merry" }];
+        const exp = [
+          { id: 1, name: "Frodo", class_id: 1, class: "Security" },
+          { id: 3, name: "Merry", class_id: 1, class: "Security" },
+        ];
 
         const firstRes = await supertest(server)
           .post("/auth/register")
@@ -279,7 +282,7 @@ describe("server", () => {
           authorization: token,
         });
 
-        expect(secondRes.body.data).toEqual(expect.arrayContaining(exp));
+        expect(secondRes.body.data).toEqual(exp);
       });
     });
 
