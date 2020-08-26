@@ -112,6 +112,50 @@ router.get("/:id/tasks", (req, res) => {
 });
 
 /**
+ * @api {post} /classes/:classId/tasks Adds a task to a particular class
+ * @apiGroup Class Tasks
+ * @apiSuccess {String} message 
+ * @apiParam {Integer} classId Taken from url
+ * @apiSuccessExample Success-Response: 
+    HTTP 200 ok
+    {
+      data: 
+    }
+
+    @apiErrorExample Error-Response:
+      HTTP 406 Not Acceptable
+      {
+        "message": "No class with that id exists"
+      }
+      @apiErrorExample Error-Response:
+      HTTP 406 Not Acceptable
+      {
+        "message": "Please provide a name and due date for the task"
+      }
+ */
+//adds a task to a particular class
+router.post("/:id/tasks", (req, res) => {
+  const classId = req.params.id;
+  const task = req.body;
+
+  if (helpers.checkClass(classId)) {
+    if (taskHelpers.validTask(task)) {
+      Classes.addClassTasks(classId, task)
+        .then((tasks) => {
+          res.status(201).json({ data: tasks });
+        })
+        .catch((err) => res.status(500).json({ error: err.message }));
+    } else {
+      res
+        .status(406)
+        .json({ message: "Please provide a name and due date to add a task" });
+    }
+  } else {
+    res.status(406).json({ message: "No class with that id exists" });
+  }
+});
+
+/**
  * @api {put} /classes/:classId Edits the information for a class
  * @apiGroup Classes
  * @apiSuccess {String} message 

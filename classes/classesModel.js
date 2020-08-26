@@ -64,4 +64,9 @@ async function getClassTasks(classId) {
 
 async function deleteClassTasks(classId, taskId) {}
 
-async function addClassTasks(classId, task) {}
+//returns an array of task objects for the class after add a task to the class
+async function addClassTasks(classId, task) {
+  const taskId = await db("tasks").insert(task, "id");
+  await db("class_tasks").insert({ class_id: classId, task_id: taskId });
+  return getClassTasks(classId);
+}

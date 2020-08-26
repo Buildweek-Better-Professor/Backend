@@ -6,6 +6,8 @@ describe("classesModel", () => {
   beforeEach(async () => {
     await db("classes").truncate();
     await db("students").truncate();
+    await db("tasks").truncate();
+    await db("class_tasks").truncate();
   });
 
   describe("getClasses()", () => {
@@ -164,6 +166,42 @@ describe("classesModel", () => {
         .orderBy("t.id");
 
       const classTasks = await Classes.getClassTasks(1);
+
+      expect(classTasks).toEqual(exp);
+      expect(classTasks).toEqual(dbExp);
+    });
+  });
+
+  describe("addClassTasks(classId, task)", () => {
+    it("adds a task to a particular class", async () => {
+      await db("classes").insert({ name: "CS" });
+      await db("classes").insert({ name: "Psy" });
+      await db("classes").insert({ name: "Math" });
+      await db("classes").insert({ name: "Psychology" });
+
+      await db("tasks").insert({ name: "to do", due_date: "before noon" });
+      await db("tasks").insert({ name: "to do2", due_date: "before noon" });
+      await db("tasks").insert({ name: "to do3", due_date: "before noon" });
+
+      await db("class_tasks").insert({ class_id: 1, task_id: 1 });
+      await db("class_tasks").insert({ class_id: 1, task_id: 3 });
+
+      const exp = [
+        { task: "to do", id: 1 },
+        { task: "to do3", id: 3 },
+        { task: "to do4", id: 4 },
+      ];
+
+      const task4 = { name: "to do4", due_date: "before midnight" };
+
+      const classTasks = await Classes.addClassTasks(1, task4);
+
+      const dbExp = await db("tasks as t")
+        .join("class_tasks as ct", "ct.task_id", "t.id")
+        .join("classes as c", "ct.class_id", "c.id")
+        .where({ "c.id": 1 })
+        .select("t.name as task", "t.id")
+        .orderBy("t.id");
 
       expect(classTasks).toEqual(exp);
       expect(classTasks).toEqual(dbExp);
