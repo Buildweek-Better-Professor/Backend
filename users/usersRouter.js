@@ -94,7 +94,6 @@ router.post("/classes", async (req, res) => {
         classId = id;
         return classId;
       });
-      console.log(classId[0]);
 
       let userNum = "";
       await Users.getUserByUsername(req.jwt.username).then((user) => {

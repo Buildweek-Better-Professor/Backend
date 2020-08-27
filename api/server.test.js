@@ -312,7 +312,7 @@ describe("server", () => {
         expect(secondRes.status).toBe(200);
       });
 
-      it.only("receives an array of task objects", async () => {
+      it("receives an array of task objects", async () => {
         await db("classes").insert({ name: "Security" });
         await db("classes").insert({ name: "CS" });
 
@@ -1705,7 +1705,7 @@ describe("server", () => {
           });
 
         expect(secondRes.body.message).toBe(
-          "Please provide a name and due date for the class",
+          "Please provide a name and due date to add a task",
         );
       });
 
@@ -1812,7 +1812,7 @@ describe("server", () => {
         expect(secondRes.status).toBe(406);
       });
 
-      it.only("sends error message 'Please a name and due date to add a task' when task is missing all required fields (name, due_date) ", async () => {
+      it("sends error message 'Please a name and due date to add a task' when task is missing all required fields (name, due_date) ", async () => {
         await db("classes").insert({
           name: "wolf",
         });
@@ -1846,7 +1846,6 @@ describe("server", () => {
           "Please provide a name and due date to add a task",
         );
       });
-      ///////////////////////////////////////////////////////
     });
   });
 
@@ -2594,7 +2593,6 @@ describe("server", () => {
 
     //edit a task for particular student
     describe("PUT /students/:id/tasks/:id", () => {
-      //name
       it("successfully edits name of a task of a particular student", async () => {
         await db("students").insert({ name: "wolf" });
         await db("tasks").insert({ name: "thesis", due_date: "Sept 1, 2020" });
@@ -2629,7 +2627,7 @@ describe("server", () => {
 
         const token = firstRes.body.token;
 
-        await supertest(server)
+        const secondRes = await supertest(server)
           .put("/students/1/tasks/1")
           .send({ name: "find thesis" })
           .set({ authorization: token });
@@ -3659,6 +3657,275 @@ describe("server", () => {
           .set({ authorization: token });
 
         expect(secondRes.body.message).toBe("That task does not exist");
+      });
+    });
+
+    //delete task from particular class
+    describe("DELETE /classes/:id/tasks/:tid", () => {
+      it("deletes a classes's task successfully from the db", async () => {
+        await db("classes").insert({
+          name: "CS",
+        });
+        await db("classes").insert({
+          name: "Psy",
+        });
+        await db("classes").insert({
+          name: "Math",
+        });
+
+        await db("tasks").insert({
+          name: "to do",
+          due_date: "Sept 1, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do2",
+          due_date: "Sept 2, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do3",
+          due_date: "Sept 3, 2020",
+        });
+
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 1,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 2,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 3,
+        });
+
+        const expTasks = [
+          {
+            task: "to do",
+            id: 1,
+          },
+          {
+            task: "to do3",
+            id: 3,
+          },
+        ];
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .delete("/classes/1/tasks/2")
+          .set({ authorization: token });
+
+        const usersDb = await db("tasks as t")
+          .join("class_tasks as ct", "ct.task_id", "t.id")
+          .join("classes as c", "ct.class_id", "c.id")
+          .where({ "c.id": 1 })
+          .select("t.name as task", "t.id")
+          .orderBy("t.id");
+
+        expect(usersDb).toEqual(expTasks);
+      });
+
+      it("sends 200 OK when deleting a student's task successfully from the db", async () => {
+        await db("classes").insert({
+          name: "CS",
+        });
+        await db("classes").insert({
+          name: "Math",
+        });
+        await db("classes").insert({
+          name: "Sci",
+        });
+
+        await db("tasks").insert({
+          name: "to do",
+          due_date: "Sept 1, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do2",
+          due_date: "Sept 2, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do3",
+          due_date: "Sept 3, 2020",
+        });
+
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 1,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 2,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 3,
+        });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .delete("/classes/1/tasks/2")
+          .set({ authorization: token });
+
+        expect(secondRes.status).toBe(200);
+      });
+
+      it("sends success message 'Deleted task Successfully' when deleting a student's task successfully from the db", async () => {
+        await db("classes").insert({
+          name: "CS",
+        });
+
+        await db("tasks").insert({
+          name: "to do",
+          due_date: "Sept 1, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do2",
+          due_date: "Sept 2, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do3",
+          due_date: "Sept 3, 2020",
+        });
+
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 1,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 2,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 3,
+        });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .delete("/classes/1/tasks/2")
+          .set({ authorization: token });
+
+        expect(secondRes.body.message).toBe("Deleted task Successfully");
+      });
+
+      it("sends error message 'That task doesn't belong to that class' when deleting a task not in the class's task list", async () => {
+        await db("classes").insert({
+          name: "CS",
+        });
+        await db("classes").insert({
+          name: "Math",
+        });
+
+        await db("tasks").insert({
+          name: "to do",
+          due_date: "Sept 1, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do2",
+          due_date: "Sept 2, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do3",
+          due_date: "Sept 3, 2020",
+        });
+
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 1,
+        });
+        await db("class_tasks").insert({
+          class_id: 2,
+          task_id: 2,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 3,
+        });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .delete("/classes/1/tasks/2")
+          .set({ authorization: token });
+
+        expect(secondRes.body.message).toBe(
+          "A task with that id doesn't exist for that class",
+        );
+      });
+
+      it("sends error message 'That task does not exist' when deleting a task not in the db", async () => {
+        await db("classes").insert({
+          name: "CS",
+        });
+
+        await db("tasks").insert({
+          name: "to do",
+          due_date: "Sept 1, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do2",
+          due_date: "Sept 2, 2020",
+        });
+        await db("tasks").insert({
+          name: "to do3",
+          due_date: "Sept 3, 2020",
+        });
+
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 1,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 2,
+        });
+        await db("class_tasks").insert({
+          class_id: 1,
+          task_id: 3,
+        });
+
+        const firstRes = await supertest(server).post("/auth/register").send({
+          username: "sam",
+          password: "pass",
+          class_id: 1,
+        });
+
+        const token = firstRes.body.token;
+
+        const secondRes = await supertest(server)
+          .delete("/classes/1/tasks/5")
+          .set({ authorization: token });
+
+        expect(secondRes.body.message).toBe(
+          "A task with that id doesn't exist for that class",
+        );
       });
     });
   });

@@ -36,7 +36,6 @@ router.get("/", async (req, res) => {
 
   Users.getClasses(userNum)
     .then((classes) => {
-      console.log(classes);
       res.status(200).json({ data: classes });
     })
     .catch((err) => {
@@ -258,4 +257,56 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+/**
+ * @api {delete} /classes/:classId/tasks/:taskId Deletes a task of a particular class
+ * @apiGroup Class Tasks
+ * @apiSuccess {String} message 
+ * @apiParam {Integer} classId Taken from url
+ * @apiSuccessExample Success-Response: 
+    HTTP 200 ok
+    {
+      "message": "Class deleted Successfully"
+    }
+
+    @apiErrorExample Error-Response:
+      HTTP 406 Not Acceptable
+      {
+        "message": "Class with that id doesn't exist"
+      }
+ */
+//deletes a class with the particular id
+//deletes a particular task from a particular class
+router.delete("/:id/tasks/:tid", async (req, res) => {
+  const classId = req.params.id;
+  const taskId = parseInt(req.params.tid);
+
+  if (helpers.checkClass(classId)) {
+    if (taskHelpers.validTaskId(taskId)) {
+      const taskList = await Classes.getClassTasks(classId);
+
+      let hasTask = false;
+      taskList.forEach((task) => {
+        if (task.id === taskId) {
+          hasTask = true;
+        }
+      });
+
+      if (hasTask) {
+        Students.deleteTask(taskId)
+          .then((count) => {
+            res.status(200).json({ message: "Deleted task Successfully" });
+          })
+          .catch((err) => res.status(500).json({ error: err.message }));
+      } else {
+        res.status(406).json({
+          message: "A task with that id doesn't exist for that class",
+        });
+      }
+    } else {
+      res.status(406).json({ message: "A task with that id doesn't exist " });
+    }
+  } else {
+    res.status(406).json({ message: "Class with that id doesn't exit" });
+  }
+});
 module.exports = router;
