@@ -43,10 +43,13 @@ async function addClassUserList(userId, classId) {
 
 //adds a student to the user's student list
 async function addStudentUserList(userId, studentId) {
-  return db("professor_students").insert({
-    user_id: userId,
-    student_id: studentId,
-  });
+  return db("professor_students").insert(
+    {
+      user_id: userId,
+      student_id: studentId,
+    },
+    "id",
+  );
 }
 
 //updates user with given id

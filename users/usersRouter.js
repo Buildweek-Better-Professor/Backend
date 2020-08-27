@@ -157,7 +157,8 @@ router.post("/students", async (req, res) => {
 
       Users.addStudentUserList(userNum, studentId)
         .then((resp) => {
-          res.status(201).json({ message: "Success" });
+          console.log(resp);
+          res.status(201).json({ message: "Success", newStudent: resp });
         })
         .catch((err) => {
           res.status(500).json({ error: err.message });
