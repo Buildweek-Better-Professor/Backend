@@ -187,7 +187,7 @@ router.put("/:id", (req, res) => {
 });
 
 /**
- * @api {put} /classes/:classId/tasks Edits the information for a task in a particular class
+ * @api {put} /tasks/:taskId Edits the information for a task in a particular class
  * @apiGroup Class Tasks
  * @apiSuccess {String} message 
  * @apiParam {Integer} classId Taken from url
